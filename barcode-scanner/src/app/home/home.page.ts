@@ -1,6 +1,5 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component } from '@angular/core';
-import { debounceTime, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -8,15 +7,13 @@ import { debounceTime, Subject } from 'rxjs';
   styleUrls: ['home.page.scss'],
 })
 export class HomePage {
+  username = 'Admin';
+  password = 'Admin@123456';
+  basicAuthHeader = 'Basic ' + btoa(`${this.username}:${this.password}`);
   barcode: string = '';
   ticketNumber: string = '';
   response: any;
-  private inputSubject = new Subject<any>();
-  constructor(private httpClient: HttpClient) {
-    this.inputSubject.pipe(debounceTime(1000)).subscribe(() => {
-      this.processScannedData();
-    });
-  }
+  constructor(private httpClient: HttpClient) {}
 
   processScannedData = () => {
     console.log('barcode scanned', this.barcode);
@@ -30,30 +27,50 @@ export class HomePage {
     }
   };
 
-  onInputChange(): void {
-    this.inputSubject.next({});
-  }
-
-  getReservationDetails = () => {
-    this.httpClient
-      .get(
-        'https://nationalmuseumbookingapi.databoat.app/api/v1/reservation/ticket/' +
-          this.ticketNumber
-      )
-      .subscribe((res: any) => {
-        console.log('response', res);
-        this.response = res.data;
-      });
+  processManualEnteredData = () => {
+    console.log('barcode scanned in manual data', this.barcode);
+    this.ticketNumber = this.barcode;
+    this.getReservationDetails();
   };
 
-  validateTicket = () => {
+  getReservationDetails = () => {
+    if (this.ticketNumber) {
+      this.httpClient
+        .get(
+          'https://nationalmuseumbookingapi.databoat.app/api/v1/reservation/ticket/' +
+            this.ticketNumber
+        )
+        .subscribe((res: any) => {
+          console.log('response', res);
+          this.response = res.data;
+        });
+    }
+  };
+
+  validateTicket = (action: any) => {
+    if (action == 2) {
+      this.response = null;
+      this.barcode = '';
+      return;
+    }
+    const model = {
+      reservationId: this.response.id,
+      statusId: 1,
+    };
+    const headers = new HttpHeaders().set(
+      'Authorization',
+      this.basicAuthHeader
+    );
     this.httpClient
-      .get(
-        'https://nationalmuseumbookingapi.databoat.app/api/v1/reservations/getReservationByTicketNumber/' +
-          this.ticketNumber
+      .put(
+        'https://localhost:5001/api/v1/reservation/update-reservation-status-basic',
+        model,
+        {
+          headers,
+        }
       )
       .subscribe((res: any) => {
-        this.response = res;
+        console.log('res after activate', res);
       });
   };
 }
