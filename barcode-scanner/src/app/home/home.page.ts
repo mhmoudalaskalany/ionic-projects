@@ -1,5 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component } from '@angular/core';
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-home',
@@ -13,7 +14,10 @@ export class HomePage {
   barcode: string = '';
   ticketNumber: string = '';
   response: any;
-  constructor(private httpClient: HttpClient) {}
+  constructor(
+    private httpClient: HttpClient,
+    private alertController: AlertController
+  ) {}
 
   processScannedData = () => {
     console.log('barcode scanned', this.barcode);
@@ -69,8 +73,35 @@ export class HomePage {
           headers,
         }
       )
-      .subscribe((res: any) => {
-        console.log('res after activate', res);
-      });
+      .subscribe(
+        async (res: any) => {
+          if (res.status === 200) {
+            this.response = null;
+            this.barcode = '';
+
+            console.log('Response:', res);
+
+            // Show success alert
+            const alert = await this.alertController.create({
+              header: 'Success',
+              message: 'Success',
+              buttons: ['OK'],
+            });
+            await alert.present();
+          }
+          console.log('res after activate', res);
+        },
+        async (error) => {
+          console.error('Error:', error);
+
+          // Show error alert
+          const alert = await this.alertController.create({
+            header: 'Error',
+            message: 'Error',
+            buttons: ['OK'],
+          });
+          await alert.present();
+        }
+      );
   };
 }
