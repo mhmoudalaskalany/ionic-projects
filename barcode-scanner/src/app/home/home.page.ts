@@ -1,6 +1,5 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component } from '@angular/core';
-import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-home',
@@ -14,12 +13,13 @@ export class HomePage {
   barcode: string = '';
   ticketNumber: string = '';
   response: any;
+  showSuccessMessage: boolean = false;
   constructor(
-    private httpClient: HttpClient,
-    private alertController: AlertController
+    private httpClient: HttpClient
   ) {}
 
   processScannedData = () => {
+    this.showSuccessMessage = false;
     console.log('barcode scanned', this.barcode);
     // Check if the scanned data contains "Data:"
     if (this.barcode.includes('Data:')) {
@@ -74,33 +74,15 @@ export class HomePage {
         }
       )
       .subscribe(
-        async (res: any) => {
+        (res: any) => {
           if (res.status === 200) {
             this.response = null;
             this.barcode = '';
-
-            console.log('Response:', res);
-
-            // Show success alert
-            const alert = await this.alertController.create({
-              header: 'Success',
-              message: 'Success',
-              buttons: ['OK'],
-            });
-            await alert.present();
+            this.showSuccessMessage = true;
           }
-          console.log('res after activate', res);
         },
-        async (error) => {
-          console.error('Error:', error);
-
-          // Show error alert
-          const alert = await this.alertController.create({
-            header: 'Error',
-            message: 'Error',
-            buttons: ['OK'],
-          });
-          await alert.present();
+        (error) => {
+          this.showSuccessMessage = false;
         }
       );
   };
