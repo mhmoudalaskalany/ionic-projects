@@ -67,7 +67,7 @@ export class HomePage {
     );
     this.httpClient
       .put(
-        'https://localhost:5001/api/v1/reservation/update-reservation-status-basic',
+        'https://nationalmuseumbookingapi.databoat.app/api/v1/reservation/update-reservation-status-basic',
         model,
         {
           headers,
