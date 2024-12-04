@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
+import { debounceTime, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -10,7 +11,12 @@ export class HomePage {
   barcode: string = '';
   ticketNumber: string = '';
   response: any;
-  constructor(private httpClient: HttpClient) {}
+  private inputSubject = new Subject<any>();
+  constructor(private httpClient: HttpClient) {
+    this.inputSubject.pipe(debounceTime(1000)).subscribe(() => {
+      this.processScannedData();
+    });
+  }
 
   processScannedData = () => {
     console.log('barcode scanned', this.barcode);
@@ -23,6 +29,11 @@ export class HomePage {
       this.getReservationDetails();
     }
   };
+
+  onInputChange(): void {
+    this.inputSubject.next({});
+  }
+
   getReservationDetails = () => {
     this.httpClient
       .get(

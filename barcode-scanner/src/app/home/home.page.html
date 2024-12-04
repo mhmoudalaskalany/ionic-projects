@@ -15,6 +15,7 @@
     <ion-item class="ion-padding ion-margin">
       <ion-input
         [(ngModel)]="barcode"
+        (ionInput)="onInputChange()"
         (ionChange)="processScannedData()"
         placeholder="Barcode"
         autofocus="true"
