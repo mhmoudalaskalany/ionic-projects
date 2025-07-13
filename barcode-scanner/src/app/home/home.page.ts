@@ -86,4 +86,15 @@ export class HomePage {
         }
       );
   };
+
+  getTotalByProperty = (propertyName: string): number => {
+    if (!this.response?.visitorCategoryDetails || !Array.isArray(this.response.visitorCategoryDetails)) {
+      return 0;
+    }
+    
+    return this.response.visitorCategoryDetails.reduce((total: number, item: any) => {
+      const value = item[propertyName];
+      return total + (value && !isNaN(value) ? Number(value) : 0);
+    }, 0);
+  };
 }

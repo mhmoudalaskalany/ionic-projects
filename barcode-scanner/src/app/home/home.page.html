@@ -65,31 +65,22 @@
 
       <ion-item lines="none" class="ion-text-start">
         <ion-label>Adult: </ion-label>
-        <ion-label
-          >{{ response.visitorCategoryDetails[0]?.adultsNumber }}</ion-label
-        >
+        <ion-label>{{ getTotalByProperty('adultsNumber') }}</ion-label>
       </ion-item>
 
       <ion-item lines="none" class="ion-text-start">
         <ion-label>Children: </ion-label>
-        <ion-label
-          >{{ response.visitorCategoryDetails[0]?.childrenNumber }}</ion-label
-        >
+        <ion-label>{{ getTotalByProperty('childrenNumber') }}</ion-label>
       </ion-item>
 
       <ion-item lines="none" class="ion-text-start">
         <ion-label>Social Security: </ion-label>
-        <ion-label
-          >{{ response.visitorCategoryDetails[0]?.socialSecurityNumber
-          }}</ion-label
-        >
+        <ion-label>{{ getTotalByProperty('socialSecurityNumber') }}</ion-label>
       </ion-item>
 
       <ion-item lines="none" class="ion-text-start">
         <ion-label>Retired: </ion-label>
-        <ion-label
-          >{{ response.visitorCategoryDetails[0]?.retiredNumber }}</ion-label
-        >
+        <ion-label>{{ getTotalByProperty('retiredNumber') }}</ion-label>
       </ion-item>
     </div>
 
