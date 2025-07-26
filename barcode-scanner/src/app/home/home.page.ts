@@ -97,4 +97,40 @@ export class HomePage {
       return total + (value && !isNaN(value) ? Number(value) : 0);
     }, 0);
   };
+
+  getVisitorCategoriesWithValues = (): Array<{displayName: string, value: number}> => {
+    if (!this.response?.visitorCategoryDetails || !Array.isArray(this.response.visitorCategoryDetails)) {
+      return [];
+    }
+
+    // Get all unique property names from the data
+    const allProperties = new Set<string>();
+    this.response.visitorCategoryDetails.forEach((item: any) => {
+      Object.keys(item).forEach(key => {
+        // Only include properties that have numeric values
+        if (typeof item[key] === 'number' || (!isNaN(Number(item[key])) && item[key] !== null && item[key] !== '')) {
+          allProperties.add(key);
+        }
+      });
+    });
+
+    // Convert property names to display names and get values
+    return Array.from(allProperties)
+      .map(property => ({
+        displayName: this.formatPropertyName(property),
+        value: this.getTotalByProperty(property)
+      }))
+      .filter(category => category.value > 0)
+      .sort((a, b) => a.displayName.localeCompare(b.displayName)); // Sort alphabetically
+  };
+
+  private formatPropertyName = (propertyName: string): string => {
+    // Convert camelCase/snake_case to readable format
+    return propertyName
+      .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+      .replace(/_/g, ' ') // Replace underscores with spaces
+      .replace(/\b\w/g, char => char.toUpperCase()) // Capitalize first letter of each word
+      .replace(/Number$/, '') // Remove 'Number' suffix if present
+      .trim();
+  };
 }
