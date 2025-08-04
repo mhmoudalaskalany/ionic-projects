@@ -52,24 +52,9 @@
         <ion-label>Visitor Categories</ion-label>
       </ion-item>
 
-      <ion-item lines="none" class="ion-text-start">
-        <ion-label>Adult: </ion-label>
-        <ion-label>{{ getTotalByProperty('adultsNumber') }}</ion-label>
-      </ion-item>
-
-      <ion-item lines="none" class="ion-text-start">
-        <ion-label>Children: </ion-label>
-        <ion-label>{{ getTotalByProperty('childrenNumber') }}</ion-label>
-      </ion-item>
-
-      <ion-item lines="none" class="ion-text-start">
-        <ion-label>Social Security: </ion-label>
-        <ion-label>{{ getTotalByProperty('socialSecurityNumber') }}</ion-label>
-      </ion-item>
-
-      <ion-item lines="none" class="ion-text-start">
-        <ion-label>Retired: </ion-label>
-        <ion-label>{{ getTotalByProperty('retiredNumber') }}</ion-label>
+      <ion-item lines="none" class="ion-text-start" *ngFor="let category of getVisitorCategoriesWithValues()">
+        <ion-label>{{ category.displayName }}: </ion-label>
+        <ion-label>{{ category.value }}</ion-label>
       </ion-item>
     </div>
 
