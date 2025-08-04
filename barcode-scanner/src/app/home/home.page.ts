@@ -41,7 +41,7 @@ export class HomePage {
     if (this.ticketNumber) {
       this.httpClient
         .get(
-          'https://nmbookingapi.databoat.app/api/v1/reservation/ticket/' +
+          'https://bookingapi.nm.gov.om/api/v1/reservation/ticket/' +
             this.ticketNumber
         )
         .subscribe((res: any) => {
@@ -67,7 +67,7 @@ export class HomePage {
     );
     this.httpClient
       .put(
-        'https://nmbookingapi.databoat.app/api/v1/reservation/update-reservation-status-basic',
+        'https://bookingapi.nm.gov.om/api/v1/reservation/update-reservation-status-basic',
         model,
         {
           headers,
