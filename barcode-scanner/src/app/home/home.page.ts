@@ -117,7 +117,7 @@ export class HomePage {
       )
       .subscribe(
         (res: any) => {
-          if (res.status === 200) {
+          if (res.statusCode === 200) {
             this.response = null;
             this.barcode = '';
             this.showSuccessMessage = true;
