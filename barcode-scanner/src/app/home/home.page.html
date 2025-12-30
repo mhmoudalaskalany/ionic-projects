@@ -19,11 +19,26 @@
 
     <ion-item lines="none" class="ion-text-center">
       <ion-label>
-        <ion-button (click)="processManualEnteredData()" color="success">
-          Scan QR Data
+        <ion-button 
+          (click)="processManualEnteredData()" 
+          color="success"
+          [disabled]="isLoadingTicket || !barcode"
+        >
+          <ion-spinner name="circles" *ngIf="isLoadingTicket" slot="start"></ion-spinner>
+          {{ isLoadingTicket ? 'Loading...' : 'Scan QR Data' }}
         </ion-button>
       </ion-label>
     </ion-item>
+
+    <!-- Loading indicator for ticket information -->
+    <div class="loading-container" *ngIf="isLoadingTicket && !response">
+      <ion-item lines="none" class="ion-text-center">
+        <ion-label>
+          <ion-spinner name="circles"></ion-spinner>
+          <p>Loading ticket information...</p>
+        </ion-label>
+      </ion-item>
+    </div>
 
     <div class="reservation-details" *ngIf="response">
       <ion-item lines="none" class="ion-text-start">
@@ -61,14 +76,23 @@
     <div class="action-buttons" *ngIf="response">
       <ion-item lines="none" class="ion-text-center">
         <ion-label>
-          <ion-button (click)="validateTicket(1)" color="success">
-            Activate
+          <ion-button 
+            (click)="validateTicket(1)" 
+            color="success"
+            [disabled]="isActivating"
+          >
+            <ion-spinner name="circles" *ngIf="isActivating" slot="start"></ion-spinner>
+            {{ isActivating ? 'Activating...' : 'Activate' }}
           </ion-button>
         </ion-label>
       </ion-item>
       <ion-item lines="none" class="ion-text-center">
         <ion-label>
-          <ion-button (click)="validateTicket(2)" color="danger">
+          <ion-button 
+            (click)="validateTicket(2)" 
+            color="danger"
+            [disabled]="isActivating"
+          >
             Cancel
           </ion-button>
         </ion-label>

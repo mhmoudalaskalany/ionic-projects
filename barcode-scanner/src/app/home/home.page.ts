@@ -1,5 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component } from '@angular/core';
+import { LoadingController, AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-home',
@@ -14,8 +15,12 @@ export class HomePage {
   ticketNumber: string = '';
   response: any;
   showSuccessMessage: boolean = false;
+  isLoadingTicket: boolean = false;
+  isActivating: boolean = false;
   constructor(
-    private httpClient: HttpClient
+    private httpClient: HttpClient,
+    private loadingController: LoadingController,
+    private alertController: AlertController
   ) {}
 
   processScannedData = () => {
@@ -37,26 +42,63 @@ export class HomePage {
     this.getReservationDetails();
   };
 
-  getReservationDetails = () => {
+  getReservationDetails = async () => {
     if (this.ticketNumber) {
+      this.isLoadingTicket = true;
+      // Clear previous response data when starting a new search
+      this.response = null;
+      this.showSuccessMessage = false;
+      
+      const loading = await this.loadingController.create({
+        message: 'Loading ticket information...',
+        spinner: 'circles'
+      });
+      await loading.present();
+
       this.httpClient
         .get(
-          'https://nationalmuseumbookingapi.databoat.app/api/v1/reservation/ticket/' +
+          'https://bookingapi.nm.gov.om/api/v1/reservation/ticket/' +
             this.ticketNumber
         )
-        .subscribe((res: any) => {
-          console.log('response', res);
-          this.response = res.data;
-        });
+        .subscribe(
+          (res: any) => {
+            console.log('response', res);
+            this.response = res.data;
+            this.isLoadingTicket = false;
+            loading.dismiss();
+          },
+          (error) => {
+            console.error('Error loading ticket:', error);
+            this.isLoadingTicket = false;
+            this.response = null; // Clear any previous ticket data
+            this.showSuccessMessage = false;
+            loading.dismiss();
+            
+            // Show error popup for 400 status or other errors
+            if (error.status === 400) {
+              this.showErrorAlert(error.error?.message || 'Invalid ticket number or request');
+            } else {
+              this.showErrorAlert('Failed to load ticket information. Please try again.');
+            }
+          }
+        );
     }
   };
 
-  validateTicket = (action: any) => {
+  validateTicket = async (action: any) => {
     if (action == 2) {
       this.response = null;
       this.barcode = '';
       return;
     }
+
+    this.isActivating = true;
+    const loading = await this.loadingController.create({
+      message: 'Activating ticket...',
+      spinner: 'circles'
+    });
+    await loading.present();
+
     const model = {
       reservationId: this.response.id,
       statusId: 1,
@@ -67,7 +109,7 @@ export class HomePage {
     );
     this.httpClient
       .put(
-        'https://nationalmuseumbookingapi.databoat.app/api/v1/reservation/update-reservation-status-basic',
+        'https://bookingapi.nm.gov.om/api/v1/reservation/update-reservation-status-basic',
         model,
         {
           headers,
@@ -80,9 +122,21 @@ export class HomePage {
             this.barcode = '';
             this.showSuccessMessage = true;
           }
+          this.isActivating = false;
+          loading.dismiss();
         },
         (error) => {
+          console.error('Error activating ticket:', error);
           this.showSuccessMessage = false;
+          this.isActivating = false;
+          loading.dismiss();
+          
+          // Show error popup for 400 status or other errors
+          if (error.status === 400) {
+            this.showErrorAlert(error.error?.message || 'Invalid request or ticket cannot be activated');
+          } else {
+            this.showErrorAlert('Failed to activate ticket. Please try again.');
+          }
         }
       );
   };
@@ -133,4 +187,13 @@ export class HomePage {
       .replace(/Number$/, '') // Remove 'Number' suffix if present
       .trim();
   };
+
+  private async showErrorAlert(message: string) {
+    const alert = await this.alertController.create({
+      header: 'Error',
+      message: message,
+      buttons: ['OK']
+    });
+    await alert.present();
+  }
 }
