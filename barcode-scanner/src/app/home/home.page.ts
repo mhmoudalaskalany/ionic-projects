@@ -157,35 +157,50 @@ export class HomePage {
       return [];
     }
 
-    // Get all unique property names from the data
-    const allProperties = new Set<string>();
-    this.response.visitorCategoryDetails.forEach((item: any) => {
-      Object.keys(item).forEach(key => {
-        // Only include properties that have numeric values
-        if (typeof item[key] === 'number' || (!isNaN(Number(item[key])) && item[key] !== null && item[key] !== '')) {
-          allProperties.add(key);
+    const result: Array<{displayName: string, value: number}> = [];
+
+    const paidCategories = this.response.visitorCategoryDetails.filter((c: any) => c.categoryCode !== 'Free');
+    const freeCategory = this.response.visitorCategoryDetails.find((c: any) => c.categoryCode === 'Free');
+
+    // Show adult count per paid category (Omani, GCC, Resident, Tourist)
+    for (const cat of paidCategories) {
+      if (cat.adultsNumber > 0) {
+        result.push({ displayName: `${cat.categoryNameEn} Adults`, value: cat.adultsNumber });
+      }
+    }
+
+    // Show each selected free sub-category with an explicit human-readable label
+    if (freeCategory) {
+      const freeFields: Array<{ field: string; label: string }> = [
+        { field: 'childrenNumber',                        label: 'Children' },
+        { field: 'studentsNumber',                        label: 'Students' },
+        { field: 'seniorCitizenNumber',                   label: 'Senior Citizen' },
+        { field: 'seniorResidentNumber',                  label: 'Senior Resident' },
+        { field: 'seniorGCCNationalsNumber',              label: 'Senior GCC Nationals' },
+        { field: 'retiredNumber',                         label: 'Retired' },
+        { field: 'socialSecurityNumber',                  label: 'Social Security' },
+        { field: 'specialNeedsPeopleNumber',              label: 'Special Needs People' },
+        { field: 'omaniMuseumsEmployeesNumber',           label: 'Omani Museums Employees' },
+        { field: 'icomOrICOMOSMemberNumber',              label: 'Icom Or ICOMOS Member' },
+        { field: 'supervisorForSchoolTripsNumber',        label: 'Supervisor For School Trips' },
+        { field: 'guestsOfTheDiwanNumber',                label: 'Guests Of The Diwan' },
+        { field: 'receptionStaffInLicensedHotelsNumber',  label: 'Reception Staff In Licensed Hotels' },
+        { field: 'sultanatesGuestsAndExcellenciesNumber', label: 'Sultanates Guests And Excellencies' },
+        { field: 'museumFriendsNumber',                   label: 'Museum Friends' },
+        { field: 'licensedTourGuideNumber',               label: 'Licensed Tour Guide' },
+        { field: 'journalistDigitalMediaNumber',          label: 'Journalist Digital Media' },
+        { field: 'escortsOfOfficialVisitsNumber',         label: 'Escorts Of Official Visits' },
+      ];
+
+      for (const { field, label } of freeFields) {
+        const value = freeCategory[field];
+        if (value > 0) {
+          result.push({ displayName: label, value });
         }
-      });
-    });
+      }
+    }
 
-    // Convert property names to display names and get values
-    return Array.from(allProperties)
-      .map(property => ({
-        displayName: this.formatPropertyName(property),
-        value: this.getTotalByProperty(property)
-      }))
-      .filter(category => category.value > 0)
-      .sort((a, b) => a.displayName.localeCompare(b.displayName)); // Sort alphabetically
-  };
-
-  private formatPropertyName = (propertyName: string): string => {
-    // Convert camelCase/snake_case to readable format
-    return propertyName
-      .replace(/([A-Z])/g, ' $1') // Add space before capital letters
-      .replace(/_/g, ' ') // Replace underscores with spaces
-      .replace(/\b\w/g, char => char.toUpperCase()) // Capitalize first letter of each word
-      .replace(/Number$/, '') // Remove 'Number' suffix if present
-      .trim();
+    return result;
   };
 
   private async showErrorAlert(message: string) {
