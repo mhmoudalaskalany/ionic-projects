@@ -80,8 +80,10 @@ export class HomePage {
                 error.error?.message || 'Invalid ticket number or request',
               );
             } else {
+              const errMsg = error.message || (error.error?.message) || JSON.stringify(error);
+              console.error('Full error object:', JSON.stringify(error));
               this.showErrorAlert(
-                'Failed to load ticket information. Please try again.' + error,
+                'Failed to load ticket information. Please try again. ' + errMsg,
               );
             }
           },
@@ -142,7 +144,9 @@ export class HomePage {
                 'Invalid request or ticket cannot be activated',
             );
           } else {
-            this.showErrorAlert('Failed to activate ticket. Please try again.');
+            const errMsg = error.message || (error.error?.message) || JSON.stringify(error);
+            console.error('Full error object:', JSON.stringify(error));
+            this.showErrorAlert('Failed to activate ticket. Please try again. ' + errMsg);
           }
         },
       );
