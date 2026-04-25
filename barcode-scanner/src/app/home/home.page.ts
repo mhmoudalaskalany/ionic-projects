@@ -20,7 +20,7 @@ export class HomePage {
   constructor(
     private httpClient: HttpClient,
     private loadingController: LoadingController,
-    private alertController: AlertController
+    private alertController: AlertController,
   ) {}
 
   processScannedData = () => {
@@ -48,17 +48,17 @@ export class HomePage {
       // Clear previous response data when starting a new search
       this.response = null;
       this.showSuccessMessage = false;
-      
+
       const loading = await this.loadingController.create({
         message: 'Loading ticket information...',
-        spinner: 'circles'
+        spinner: 'circles',
       });
       await loading.present();
 
       this.httpClient
         .get(
           'https://bookingapi.nm.gov.om/api/v1/reservation/ticket/' +
-            this.ticketNumber
+            this.ticketNumber,
         )
         .subscribe(
           (res: any) => {
@@ -73,14 +73,18 @@ export class HomePage {
             this.response = null; // Clear any previous ticket data
             this.showSuccessMessage = false;
             loading.dismiss();
-            
+
             // Show error popup for 400 status or other errors
             if (error.status === 400) {
-              this.showErrorAlert(error.error?.message || 'Invalid ticket number or request');
+              this.showErrorAlert(
+                error.error?.message || 'Invalid ticket number or request',
+              );
             } else {
-              this.showErrorAlert('Failed to load ticket information. Please try again.');
+              this.showErrorAlert(
+                'Failed to load ticket information. Please try again.' + error,
+              );
             }
-          }
+          },
         );
     }
   };
@@ -95,7 +99,7 @@ export class HomePage {
     this.isActivating = true;
     const loading = await this.loadingController.create({
       message: 'Activating ticket...',
-      spinner: 'circles'
+      spinner: 'circles',
     });
     await loading.present();
 
@@ -105,7 +109,7 @@ export class HomePage {
     };
     const headers = new HttpHeaders().set(
       'Authorization',
-      this.basicAuthHeader
+      this.basicAuthHeader,
     );
     this.httpClient
       .put(
@@ -113,7 +117,7 @@ export class HomePage {
         model,
         {
           headers,
-        }
+        },
       )
       .subscribe(
         (res: any) => {
@@ -130,66 +134,106 @@ export class HomePage {
           this.showSuccessMessage = false;
           this.isActivating = false;
           loading.dismiss();
-          
+
           // Show error popup for 400 status or other errors
           if (error.status === 400) {
-            this.showErrorAlert(error.error?.message || 'Invalid request or ticket cannot be activated');
+            this.showErrorAlert(
+              error.error?.message ||
+                'Invalid request or ticket cannot be activated',
+            );
           } else {
             this.showErrorAlert('Failed to activate ticket. Please try again.');
           }
-        }
+        },
       );
   };
 
   getTotalByProperty = (propertyName: string): number => {
-    if (!this.response?.visitorCategoryDetails || !Array.isArray(this.response.visitorCategoryDetails)) {
+    if (
+      !this.response?.visitorCategoryDetails ||
+      !Array.isArray(this.response.visitorCategoryDetails)
+    ) {
       return 0;
     }
-    
-    return this.response.visitorCategoryDetails.reduce((total: number, item: any) => {
-      const value = item[propertyName];
-      return total + (value && !isNaN(value) ? Number(value) : 0);
-    }, 0);
+
+    return this.response.visitorCategoryDetails.reduce(
+      (total: number, item: any) => {
+        const value = item[propertyName];
+        return total + (value && !isNaN(value) ? Number(value) : 0);
+      },
+      0,
+    );
   };
 
-  getVisitorCategoriesWithValues = (): Array<{displayName: string, value: number}> => {
-    if (!this.response?.visitorCategoryDetails || !Array.isArray(this.response.visitorCategoryDetails)) {
+  getVisitorCategoriesWithValues = (): Array<{
+    displayName: string;
+    value: number;
+  }> => {
+    if (
+      !this.response?.visitorCategoryDetails ||
+      !Array.isArray(this.response.visitorCategoryDetails)
+    ) {
       return [];
     }
 
-    const result: Array<{displayName: string, value: number}> = [];
+    const result: Array<{ displayName: string; value: number }> = [];
 
-    const paidCategories = this.response.visitorCategoryDetails.filter((c: any) => c.categoryCode !== 'Free');
-    const freeCategory = this.response.visitorCategoryDetails.find((c: any) => c.categoryCode === 'Free');
+    const paidCategories = this.response.visitorCategoryDetails.filter(
+      (c: any) => c.categoryCode !== 'Free',
+    );
+    const freeCategory = this.response.visitorCategoryDetails.find(
+      (c: any) => c.categoryCode === 'Free',
+    );
 
     // Show adult count per paid category (Omani, GCC, Resident, Tourist)
     for (const cat of paidCategories) {
       if (cat.adultsNumber > 0) {
-        result.push({ displayName: `${cat.categoryNameEn} Adults`, value: cat.adultsNumber });
+        result.push({
+          displayName: `${cat.categoryNameEn} Adults`,
+          value: cat.adultsNumber,
+        });
       }
     }
 
     // Show each selected free sub-category with an explicit human-readable label
     if (freeCategory) {
       const freeFields: Array<{ field: string; label: string }> = [
-        { field: 'childrenNumber',                        label: 'Children' },
-        { field: 'studentsNumber',                        label: 'Students' },
-        { field: 'seniorCitizenNumber',                   label: 'Senior Citizen' },
-        { field: 'seniorResidentNumber',                  label: 'Senior Resident' },
-        { field: 'seniorGCCNationalsNumber',              label: 'Senior GCC Nationals' },
-        { field: 'retiredNumber',                         label: 'Retired' },
-        { field: 'socialSecurityNumber',                  label: 'Social Security' },
-        { field: 'specialNeedsPeopleNumber',              label: 'Special Needs People' },
-        { field: 'omaniMuseumsEmployeesNumber',           label: 'Omani Museums Employees' },
-        { field: 'icomOrICOMOSMemberNumber',              label: 'Icom Or ICOMOS Member' },
-        { field: 'supervisorForSchoolTripsNumber',        label: 'Supervisor For School Trips' },
-        { field: 'guestsOfTheDiwanNumber',                label: 'Guests Of The Diwan' },
-        { field: 'receptionStaffInLicensedHotelsNumber',  label: 'Reception Staff In Licensed Hotels' },
-        { field: 'sultanatesGuestsAndExcellenciesNumber', label: 'Sultanates Guests And Excellencies' },
-        { field: 'museumFriendsNumber',                   label: 'Museum Friends' },
-        { field: 'licensedTourGuideNumber',               label: 'Licensed Tour Guide' },
-        { field: 'journalistDigitalMediaNumber',          label: 'Journalist Digital Media' },
-        { field: 'escortsOfOfficialVisitsNumber',         label: 'Escorts Of Official Visits' },
+        { field: 'childrenNumber', label: 'Children' },
+        { field: 'studentsNumber', label: 'Students' },
+        { field: 'seniorCitizenNumber', label: 'Senior Citizen' },
+        { field: 'seniorResidentNumber', label: 'Senior Resident' },
+        { field: 'seniorGCCNationalsNumber', label: 'Senior GCC Nationals' },
+        { field: 'retiredNumber', label: 'Retired' },
+        { field: 'socialSecurityNumber', label: 'Social Security' },
+        { field: 'specialNeedsPeopleNumber', label: 'Special Needs People' },
+        {
+          field: 'omaniMuseumsEmployeesNumber',
+          label: 'Omani Museums Employees',
+        },
+        { field: 'icomOrICOMOSMemberNumber', label: 'Icom Or ICOMOS Member' },
+        {
+          field: 'supervisorForSchoolTripsNumber',
+          label: 'Supervisor For School Trips',
+        },
+        { field: 'guestsOfTheDiwanNumber', label: 'Guests Of The Diwan' },
+        {
+          field: 'receptionStaffInLicensedHotelsNumber',
+          label: 'Reception Staff In Licensed Hotels',
+        },
+        {
+          field: 'sultanatesGuestsAndExcellenciesNumber',
+          label: 'Sultanates Guests And Excellencies',
+        },
+        { field: 'museumFriendsNumber', label: 'Museum Friends' },
+        { field: 'licensedTourGuideNumber', label: 'Licensed Tour Guide' },
+        {
+          field: 'journalistDigitalMediaNumber',
+          label: 'Journalist Digital Media',
+        },
+        {
+          field: 'escortsOfOfficialVisitsNumber',
+          label: 'Escorts Of Official Visits',
+        },
       ];
 
       for (const { field, label } of freeFields) {
@@ -207,7 +251,7 @@ export class HomePage {
     const alert = await this.alertController.create({
       header: 'Error',
       message: message,
-      buttons: ['OK']
+      buttons: ['OK'],
     });
     await alert.present();
   }
